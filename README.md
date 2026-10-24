@@ -1,29 +1,36 @@
 # French Museums: From Crisis to Recovery (2014–2024)
 
-Individual EFREI ING2 Business Intelligence & Analytics project. This single-page Streamlit app studies recorded museum admissions before, during and after the COVID-19 crisis. It is intended for students and cultural decision-makers.
+Individual EFREI ING2 Business Intelligence & Analytics project, built with Streamlit.
 
-**Question:** How did the COVID-19 pandemic affect museum attendance in France, and how did attendance recover between 2021 and 2024? The app describes changes, without estimating a causal effect.
+**Question:** How did the COVID-19 pandemic affect museum attendance in France, and how did attendance recover between 2021 and 2024?
 
-## Install and run locally
+[GitHub repository](https://github.com/Ryzhjr/french-museums-data-storytelling)
 
-Tested with Python 3.13. From the project folder:
+## Install and run
+
+Tested with **Python 3.13**. From the project folder:
 
 ```bash
 python -m venv .venv
 ```
 
-Activate the environment with `.venv\Scripts\Activate.ps1` in Windows PowerShell, or `source .venv/bin/activate` on macOS/Linux. Then run:
+Activate the environment:
+
+- Windows PowerShell: `.venv\Scripts\Activate.ps1`
+- macOS/Linux: `source .venv/bin/activate`
+
+Then install the dependencies and start the app:
 
 ```bash
-pip install -r requirements.txt
-streamlit run app.py
+python -m pip install -r requirements.txt
+python -m streamlit run app.py
 ```
 
-If PowerShell blocks activation, run `.venv\Scripts\python.exe -m streamlit run app.py` after installing requirements with that same Python executable.
+If PowerShell blocks activation, use `.venv\Scripts\python.exe` instead of `python` in the last two commands.
 
-The only direct libraries are **Streamlit 1.66.1**, **pandas 3.1.0** and **Plotly 7.1.0**. Their required packages are installed automatically. The app reads local files and makes no data API or map-tile request at startup. A modern browser with WebGL support is needed for the interactive map.
+Dependencies are pinned in `requirements.txt`: Streamlit 1.66.1, pandas 3.1.0 and Plotly 7.1.0. The CSV and GeoJSON are included, so no data download or API key is needed to run the app.
 
-## Files
+## Project structure
 
 ```text
 app.py
@@ -41,54 +48,62 @@ data/
     regions.geojson
 README.md
 requirements.txt
+.gitignore
 ```
 
-The environment `.venv/` is only for local execution and is not part of the submission files.
+The folder name is lowercase `data` for Linux compatibility. The virtual environment, caches and secrets are excluded from Git.
 
-## Source and licences
+## Dashboard
 
-The only statistical source is the [Ministry of Culture dataset on data.gouv.fr](https://www.data.gouv.fr/datasets/frequentation-des-musees-de-france-1), under **Licence Ouverte / Open Licence** (`fr-lo`). [Licence reference from Etalab](https://github.com/etalab/licence-ouverte). The portal does not state a licence version. Keep this source attribution when reusing the data.
+**Part 1 — Our Data Story** presents a fixed national analysis:
 
-The portal calls the resource `frequentation-des-musees-de-france.csv`, while its [download URL](https://ministere-culture.s3.sbg.io.cloud.ovh.net/FREQ_MUSEES/ENTREES_ET_CATEGORIES_DE_PUBLIC.csv) ends in `ENTREES_ET_CATEGORIES_DE_PUBLIC.csv`. The local original matches that download by SHA-256. Resource update: **19 October 2026**; verified **24 October 2026**. The CSV has **12,292 rows**, 20 columns and observations for **2014–2024**. Empty coverage metadata on the portal do not mean the year and geographical columns are absent from the CSV. The historical Excel is not used.
+1. **The Big Picture:** attendance KPIs for 2019, 2020 and 2024.
+2. **Attendance Evolution:** the years before Covid, the 2020 fall and the recovery.
+3. **Regional Recovery:** a bar chart and map comparing the same **990 sites** in 2019 and 2024. Percentages compare recovery against each region's own baseline. Short comments explain regional differences and local closures.
+4. **Paid vs Free Admissions:** a grouped bar chart for **814 sites** with complete, consistent records for every year from 2019 to 2024. The text describes the smaller gap during the crisis and its later increase.
+5. **Key Findings:** a short conclusion, with only the main takeaway in a green `st.success()` box.
 
-The map uses [Contours administratifs](https://www.data.gouv.fr/datasets/contours-administratifs), published by **data.gouv.fr**, **Régions 2024, 1000 m**, resource updated **17 April 2025**. [Original GeoJSON](https://object.data.gouv.fr/contours-administratifs/2024/geojson/regions-1000m.geojson). Attribution: **data.gouv.fr / IGN / © OpenStreetMap contributors**. Contains information from Contours administratifs, available under [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/). The unchanged database is supplied as `data/regions.geojson`, under that licence. It provides boundaries only. All 19 statistical regions/territories match a boundary; other features receive no invented statistics. These data licences are separate from the code.
+**Part 2 — Explore Museum Attendance** lets users select regions/territories, a year range and total, paid or free admissions. These filters update three KPIs, a line chart, a regional bar chart and a map. They do not change Part 1.
 
-The map starts over mainland France when mainland regions have a valid comparison. Overseas comparisons remain included and can be viewed by zooming out and dragging. An overseas-only comparison centres the map on its actual boundaries. No additional map selector or location dataset is used.
+**Data Quality** and **Limitations** are separate text sections. There is no quality table or coloured limitations box.
 
-## Method, story and limits
+## Cleaning and method
 
-The single page now has two distinct parts. **Part 1 is a fixed national Data Story**, prepared in the cached `get_data()` before any sidebar filters are applied. **Part 2 is Explore Museum Attendance**, with independent filtered tables and short factual labels. Changing the sidebar never changes Part 1.
+- Read the CSV in UTF-8, with a semicolon separator and string identifiers.
+- Convert years and attendance fields to numeric values and trim museum names.
+- Exclude all **4 rows** from two ambiguous site-year groups in 2021: **12,292 original rows → 12,288 analysis rows**.
+- Report **3 missing total-admission values** and **19 paid/free/total mismatches**. Keep published counts without filling missing values.
+- Keep recorded zeros, including when a site has closed. A missing record is not replaced by zero.
+- Use available records for national yearly totals. For regional comparisons, match the same sites at both dates.
+- Use a separate fixed 814-site panel for paid/free comparisons. Every record must satisfy paid plus free equals total.
+- Cache data preparation with `st.cache_data`.
 
-`get_data()` retains the professor's `load_data()` then `make_tables()` pattern and `st.cache_data`. The CSV uses UTF-8, `sep=";"` and string IDs. Four ambiguous 2021 site-year records are isolated, leaving **12,288 analytical rows**. The **19 paid/free/total mismatches** are reported while published totals remain in attendance analysis. Missing counts stay missing; an entirely missing sum stays missing. No additional statistical source or new dependency is used.
+Across the same 990 sites, admissions increase from **63,471,160 in 2019** to **68,303,209 in 2024 (+7.61%)**. **9 of 19** regional panels remain below 2019.
 
-### Part 1: our fixed story
+## Limitations
 
-1. **The Big Picture:** three fixed observed totals for 2019, 2020 and 2024, with a brief explanation of the shock and outcome.
-2. **Attendance Evolution:** one annual line covering 2014-2024. Annual changes explain the earlier fluctuations, the partial 2021 return, the large 2022 rebound and the slower 2023-2024 increase. Hover gives site coverage.
-3. **Regional Recovery:** the existing bars and map compare 2019 and 2024 for the same **990 sites** with known total admissions at both dates. Text distinguishes current volume, absolute change, percentage change and panel size. Illustrative admissions-per-site averages are not quality scores. The map and bars use the same percentage scale; two separate volume maps are unnecessary.
-4. **Paid vs Free:** one additional grouped bar chart uses the same **814 sites** with complete, consistent paid/free/total records in every year from 2019 to 2024. Each row must satisfy paid plus free equals total. Payment shares divide by the total of these same records. This balanced payment panel differs from the regional panel and national observed totals.
-5. **Key Findings:** short synthesis of observed facts, interpretations and explicitly unproven hypotheses.
+Admissions are visits, not unique people. Reporting coverage changes between years, so national totals do not always describe the same museums. Common-site panels improve comparability but do not control for opening days, exhibitions or changes in activity.
 
-The default national observed totals are **65,933,388 in 2019**, **23,819,133 in 2020** (-63.87%) and **71,192,245 in 2024** (+7.98% from 2019). The observed count first exceeds 2019 in **2023**. For the same 990 sites, the 2019/2024 increase is **7.61%**, while **9 of 19** regional panels remain below their earlier count. The analytical 2021 total is **31,011,196** after the four exclusions.
+The data is yearly, so it cannot show monthly changes or the exact effects of lockdown and reopening dates. Tourism, household budgets and regional resources are possible explanations, not causes measured by this CSV. Closure fields do not provide a reliable annual opening calendar.
 
-In the compatible 814-site payment panel, free admissions rise from **25,331,369** in 2019 to **26,530,126** in 2024, while paid admissions rise from **34,759,761** to **38,104,267**. The free share falls from **42.15% to 41.05%**. An increase in free volume is therefore different from an increase in its proportion. Neither this share nor this smaller panel should be calculated against the full national total.
+## Data sources and licences
 
-### Part 2: user exploration
+- **Museum admissions:** [Ministry of Culture dataset on data.gouv.fr](https://www.data.gouv.fr/datasets/frequentation-des-musees-de-france-1), under **Licence Ouverte / Open Licence**. [Etalab licence reference](https://github.com/etalab/licence-ouverte). [Original CSV](https://ministere-culture.s3.sbg.io.cloud.ovh.net/FREQ_MUSEES/ENTREES_ET_CATEGORIES_DE_PUBLIC.csv). The local file contains 20 columns and observations for 2014–2024. The historical Excel is not used.
+- **Map boundaries:** [Contours administratifs](https://www.data.gouv.fr/datasets/contours-administratifs), regions 2024, 1000 m. [Original GeoJSON](https://object.data.gouv.fr/contours-administratifs/2024/geojson/regions-1000m.geojson). Attribution: **data.gouv.fr / IGN / © OpenStreetMap contributors**, under [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/). The unchanged GeoJSON is included in `data/regions.geojson`. These licences apply to the data separately from the code.
 
-The sidebar offers only **Regions / territories**, **Year range** (default 2014-2024) and **Metric** (Total/Paid/Free). Three interactive KPIs show the last selected year's recorded count, the observed percentage change between selected endpoints and the known site count at the last date. An endpoint percentage needs different years, known values and a positive starting total.
+The map includes overseas territories; zoom out and drag to view them.
 
-The shared line function shows the chosen period. Shared bar/map functions compare its **first and last selected years**, using the same sites with known values at both endpoints. A zero combined starting total has no valid percentage. A single-year or empty selection gives a clear message instead of an invented change. There are no long automatic interpretations or hypotheses in the exploration section.
+Context for the regional comments comes from [Patrimostat 2025](https://www.culture.gouv.fr/content/download/378770/pdf_file/Patrimostat-2025.pdf), which describes renovation at the MuMa and the Approuague closure in 2023, and [2024 information on the Arche closure](https://lheuredelest.org/que-faire-en-vacances-a-saint-pierre-et-miquelon/), alongside the [museum's practical information](https://www.arche-musee-et-archives.net/fr/10-infos-pratiques.html). These sources provide context; their statistics are not merged into the dashboard.
 
-There are **four fixed-story charts and three default exploration charts**. They serve the two explicitly requested purposes; no extra page, selector, table or chart beyond these is added. Chart keys keep the reused functions independent. The four recommended section modules and three utility modules are retained.
+## Deploy on Streamlit Community Cloud
 
-### Quality and limits
+Connect your GitHub account at [Streamlit Community Cloud](https://share.streamlit.io/) and create an app with:
 
-The mandatory quality section gives missing attendance values, ambiguous keys, consistency checks and filtered missingness. The CSV is unchanged. Admissions are visits, not unique people. Coverage changes across years and regions; some sites may combine several museums. The portal's current collection definitions are limited. Closure fields are not a yearly opening calendar. Common-site comparisons still exclude missing records and do not control for exhibitions or opening days.
+- Repository: `Ryzhjr/french-museums-data-storytelling`
+- Branch: `main`
+- Main file: `app.py`
+- Python version in Advanced settings: **3.13**
 
-The national narrative links to official historical context: the [2015–2016 attacks and tourism](https://www.entreprises.gouv.fr/la-dge/publications/826-millions-de-touristes-etrangers-en-france-en-2016), [lockdown on 17 March 2020](https://www.interieur.gouv.fr/archive/allocution-de-christophe-castaner-ministre-de-l-interieur-a-l-issue-du-conseil-des-ministres-du-17-mars-2020), [the tourism disruption](https://blog.insee.fr/tourisme-recherchesgoogle-avisairbnb-et-statistiques/), [cultural reopening on 19 May 2021](https://www.culture.gouv.fr/actualites/Reouverture-des-lieux-culturels-un-dispositif-general-et-progressif), [easing of rules in March 2022](https://www.info.gouv.fr/actualite/covid-19-le-gouvernement-leve-le-pass-vaccinal-et-le-port-du-masque-a-compter-du-14-mars) and [the return of tourism in 2022](https://www.insee.fr/fr/information/6669676). These sources provide context only; no external statistical series is joined or plotted.
+Dependencies are installed from `requirements.txt`. No secrets are required by this app. See the [official deployment guide](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy).
 
-The contribution of these events to our museum counts, visitor fears, gradual adjustment and a stronger wish for cultural outings remain **hypotheses**, not effects measured by the CSV. A missing site record is not proof of a COVID-related closure. Recorded zeros remain in observed totals, but missing records are never imputed as zeros. The 2023–2024 high counts are records within this file, not claims about all-time national records or statistical significance. The app does not infer visitor identities or claim that the dataset proves a causal effect of the pandemic or a public policy. No sampling is used. The annual slider adapts the professor's example daily picker to yearly data.
-
-## Later submission requirements
-
-The professor also requests a report, storyboard, repository link, a validated deployed-app URL, a 2-4 minute demo and a ZIP containing code, README and dataset or link, named `StApp26_<student_number>_<surname>_BIA.zip`. The method/results and story outline above preserve the useful report and storyboard information. These submission tasks are postponed until the local app is validated. No new ZIP, repository, deployment, video or delivery script is prepared in this simplified version.
+The public app URL will be added after deployment is confirmed.
