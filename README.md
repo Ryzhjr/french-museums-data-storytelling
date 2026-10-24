@@ -10,6 +10,8 @@ Individual EFREI ING2 Business Intelligence & Analytics project, built with Stre
 
 [Storyboard: the story and chart sequence](STORYBOARD.md)
 
+[Project report: methods, results and limitations](REPORT.md)
+
 ## Install and run
 
 Tested with **Python 3.13**. From the project folder:
