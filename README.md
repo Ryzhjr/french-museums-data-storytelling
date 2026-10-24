@@ -6,6 +6,8 @@ Individual EFREI ING2 Business Intelligence & Analytics project, built with Stre
 
 [GitHub repository](https://github.com/Ryzhjr/french-museums-data-storytelling)
 
+[Storyboard: the story and chart sequence](STORYBOARD.md)
+
 ## Install and run
 
 Tested with **Python 3.13**. From the project folder:
