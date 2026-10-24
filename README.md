@@ -6,6 +6,8 @@ Individual EFREI ING2 Business Intelligence & Analytics project, built with Stre
 
 [GitHub repository](https://github.com/Ryzhjr/french-museums-data-storytelling)
 
+[Open the Streamlit app](https://french-museums-data-storytelling-htxicr2gvtb6r9ogxu8gjz.streamlit.app/)
+
 [Storyboard: the story and chart sequence](STORYBOARD.md)
 
 ## Install and run
@@ -108,4 +110,4 @@ Connect your GitHub account at [Streamlit Community Cloud](https://share.streaml
 
 Dependencies are installed from `requirements.txt`. No secrets are required by this app. See the [official deployment guide](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy).
 
-The public app URL will be added after deployment is confirmed.
+Public app: [French Museums: From Crisis to Recovery](https://french-museums-data-storytelling-htxicr2gvtb6r9ogxu8gjz.streamlit.app/).
